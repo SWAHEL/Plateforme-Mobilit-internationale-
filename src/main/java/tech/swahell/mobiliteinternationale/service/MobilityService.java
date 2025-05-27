@@ -2,10 +2,7 @@ package tech.swahell.mobiliteinternationale.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tech.swahell.mobiliteinternationale.entity.Mobility;
-import tech.swahell.mobiliteinternationale.entity.Student;
-import tech.swahell.mobiliteinternationale.entity.MobilityStatus;
-import tech.swahell.mobiliteinternationale.entity.MobilityType;
+import tech.swahell.mobiliteinternationale.entity.*;
 import tech.swahell.mobiliteinternationale.exception.MobilityNotFoundException;
 import tech.swahell.mobiliteinternationale.exception.StudentNotFoundException;
 import tech.swahell.mobiliteinternationale.repository.MobilityRepository;
@@ -31,9 +28,6 @@ public class MobilityService {
         this.academicYearService = academicYearService;
     }
 
-    /**
-     * ➕ Create a new mobility for a student
-     */
     public Mobility createMobility(Long studentId, MobilityType type, String program, LocalDate startDate, LocalDate endDate) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException("Étudiant non trouvé avec l'ID : " + studentId));
@@ -49,35 +43,38 @@ public class MobilityService {
         return mobilityRepository.save(mobility);
     }
 
-    /**
-     * 📋 Retrieve all mobility records
-     */
     public List<Mobility> getAllMobilities() {
         return mobilityRepository.findAll();
     }
 
-    /**
-     * 🔍 Retrieve all mobilities for a given student ID
-     */
     public List<Mobility> getMobilitiesByStudentId(Long studentId) {
         return mobilityRepository.findByStudentId(studentId);
     }
 
-    /**
-     * 🔄 Update the status of a mobility
-     */
     public Mobility updateMobilityStatus(Long mobilityId, MobilityStatus newStatus) {
-        return mobilityRepository.findById(mobilityId)
-                .map(mobility -> {
-                    mobility.setStatus(newStatus);
-                    return mobilityRepository.save(mobility);
-                })
+        Mobility mobility = mobilityRepository.findById(mobilityId)
                 .orElseThrow(() -> new MobilityNotFoundException("Mobilité non trouvée avec l'ID : " + mobilityId));
+
+        MobilityStatus currentStatus = mobility.getStatus();
+
+        if (!isValidTransition(currentStatus, newStatus)) {
+            throw new IllegalStateException("Transition invalide : " + currentStatus + " → " + newStatus);
+        }
+
+        mobility.setStatus(newStatus);
+        return mobilityRepository.save(mobility);
     }
 
-    /**
-     * ❌ Delete a mobility by ID
-     */
+    private boolean isValidTransition(MobilityStatus current, MobilityStatus target) {
+        return switch (current) {
+            case PREPARATION -> target == MobilityStatus.PENDING_DOCS;
+            case PENDING_DOCS -> target == MobilityStatus.VERIFIED;
+            case VERIFIED -> target == MobilityStatus.COMMISSION;
+            case COMMISSION -> target == MobilityStatus.VALIDATED || target == MobilityStatus.REJECTED;
+            case VALIDATED, REJECTED -> false;
+        };
+    }
+
     public void deleteMobility(Long id) {
         if (!mobilityRepository.existsById(id)) {
             throw new MobilityNotFoundException("Impossible de supprimer : mobilité non trouvée avec l'ID : " + id);
@@ -85,16 +82,10 @@ public class MobilityService {
         mobilityRepository.deleteById(id);
     }
 
-    /**
-     * 🔍 Find a mobility by its ID
-     */
     public Optional<Mobility> getMobilityById(Long id) {
         return mobilityRepository.findById(id);
     }
 
-    /**
-     * 🔍 Search mobility records by partner name or ID
-     */
     public List<Mobility> searchByPartner(String partnerName, Long partnerId) {
         if (partnerId != null) {
             return mobilityRepository.findByStudent_Partner_Id(partnerId);
@@ -105,13 +96,26 @@ public class MobilityService {
         }
     }
 
-    /**
-     * 📊 Calculate the average converted grade for a mobility
-     */
     public double getMobilityConvertedGradeAverage(Long mobilityId) {
         return academicYearService.getYearsByMobility(mobilityId).stream()
                 .mapToDouble(year -> academicYearService.getAverageConvertedGradeForYear(year.getId()))
                 .average()
                 .orElse(0.0);
+    }
+
+    public List<Mobility> searchByTypeAndStatus(MobilityType type, MobilityStatus status) {
+        return mobilityRepository.findByTypeAndStatus(type, status);
+    }
+
+    public List<Mobility> searchByFiliere(String filiere) {
+        return mobilityRepository.findByStudent_Filiere(filiere);
+    }
+
+    public List<Mobility> getMobilitiesWithDecision() {
+        return mobilityRepository.findByDecisionIsNotNull();
+    }
+
+    public List<Mobility> getMobilitiesByStatus(MobilityStatus status) {
+        return mobilityRepository.findByStatus(status);
     }
 }

@@ -25,9 +25,18 @@ public interface MobilityRepository extends JpaRepository<Mobility, Long> {
     // 🔍 Find all mobilities with a certain status (PENDING_DOCS, COMMISSION, etc.)
     List<Mobility> findByStatus(MobilityStatus status);
 
-    // ✅ New: Search mobilities by partner university name (partial match, case-insensitive)
+    // ✅ Search mobilities by both type and status
+    List<Mobility> findByTypeAndStatus(MobilityType type, MobilityStatus status);
+
+    // ✅ Search mobilities by student filière (requires Student to have 'filiere' field)
+    List<Mobility> findByStudent_Filiere(String filiere);
+
+    // ✅ Find mobilities with decisions already submitted
+    List<Mobility> findByDecisionIsNotNull();
+
+    // 🔍 Search mobilities by partner university name (partial match, case-insensitive)
     List<Mobility> findByStudent_Partner_UniversityNameContainingIgnoreCase(String universityName);
 
-    // ✅ New: Search mobilities by partner ID
+    // 🔍 Search mobilities by partner ID
     List<Mobility> findByStudent_Partner_Id(Long partnerId);
 }
