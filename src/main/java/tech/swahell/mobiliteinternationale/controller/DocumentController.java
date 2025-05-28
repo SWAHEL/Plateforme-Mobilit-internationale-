@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.swahell.mobiliteinternationale.dto.DocumentRequest;
+import org.springframework.web.multipart.MultipartFile;
 import tech.swahell.mobiliteinternationale.entity.Document;
 import tech.swahell.mobiliteinternationale.entity.DocumentType;
 import tech.swahell.mobiliteinternationale.service.DocumentService;
@@ -23,27 +23,23 @@ public class DocumentController {
     }
 
     /**
-     * 📄 Upload a document related to a mobility
-     * - Only allowed for PARTNER and SCHOOL_ADMIN with restricted types
+     * 📄 Upload a PDF document related to a mobility
      */
     @PreAuthorize("hasAnyRole('PARTNER', 'SCHOOL_ADMIN')")
     @PostMapping("/upload")
-    public ResponseEntity<Document> uploadDocument(@RequestBody DocumentRequest request) {
-        DocumentType type = DocumentType.valueOf(request.getType().toUpperCase());
+    public ResponseEntity<Document> uploadDocument(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("type") String type,
+            @RequestParam("mobilityId") Long mobilityId) {
 
-        // Restrict upload permissions
-        if (type == DocumentType.TRANSCRIPT || type == DocumentType.ATTESTATION_REUSSITE) {
-            return ResponseEntity.ok(
-                    documentService.addDocument(
-                            request.getMobilityId(),
-                            type,
-                            request.getFilePath(),
-                            request.isOcrExtracted()
-                    )
-            );
-        } else {
-            return ResponseEntity.badRequest().body(null); // ❌ Only those two types allowed
+        DocumentType docType = DocumentType.valueOf(type.toUpperCase());
+
+        if (docType != DocumentType.TRANSCRIPT && docType != DocumentType.ATTESTATION_REUSSITE) {
+            return ResponseEntity.badRequest().body(null); // Only allowed types
         }
+
+        Document savedDocument = documentService.uploadDocument(file, docType, mobilityId);
+        return ResponseEntity.ok(savedDocument);
     }
 
     /**

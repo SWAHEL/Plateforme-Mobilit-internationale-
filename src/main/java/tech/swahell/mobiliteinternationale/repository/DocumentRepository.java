@@ -7,6 +7,7 @@ import tech.swahell.mobiliteinternationale.entity.DocumentType;
 import tech.swahell.mobiliteinternationale.entity.Mobility;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
@@ -25,4 +26,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     // 🔍 Get documents by mobility and type
     List<Document> findByMobilityIdAndType(Long mobilityId, DocumentType type);
+
+    // 🆕 Optional: Find document by SHA-256 hash to prevent duplicates
+    Optional<Document> findByFileHash(String fileHash);
 }

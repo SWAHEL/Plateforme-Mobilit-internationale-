@@ -19,9 +19,21 @@ public class Document implements Serializable {
     @Column(nullable = false)
     private String filePath;
 
+    @Column(nullable = false)
+    private String originalFilename; // new
+
+    @Column(nullable = false)
+    private String contentType; // new (e.g., application/pdf)
+
     private boolean ocrExtracted;
 
     private LocalDate uploadDate;
+
+    @Column(columnDefinition = "TEXT")
+    private String rawOcrText; // new – optional (raw OCR result)
+
+    @Column(length = 64)
+    private String fileHash; // new – optional (e.g., SHA-256)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mobility_id", nullable = false)
@@ -30,15 +42,19 @@ public class Document implements Serializable {
     // 🧱 Constructors
     public Document() {}
 
-    public Document(DocumentType type, String filePath, boolean ocrExtracted, LocalDate uploadDate, Mobility mobility) {
+    public Document(DocumentType type, String filePath, String originalFilename, String contentType,
+                    boolean ocrExtracted, LocalDate uploadDate, Mobility mobility) {
         this.type = type;
         this.filePath = filePath;
+        this.originalFilename = originalFilename;
+        this.contentType = contentType;
         this.ocrExtracted = ocrExtracted;
         this.uploadDate = uploadDate;
         this.mobility = mobility;
     }
 
     // 🔄 Getters and Setters
+
     public Long getId() {
         return id;
     }
@@ -63,6 +79,22 @@ public class Document implements Serializable {
         this.filePath = filePath;
     }
 
+    public String getOriginalFilename() {
+        return originalFilename;
+    }
+
+    public void setOriginalFilename(String originalFilename) {
+        this.originalFilename = originalFilename;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
     public boolean isOcrExtracted() {
         return ocrExtracted;
     }
@@ -79,6 +111,22 @@ public class Document implements Serializable {
         this.uploadDate = uploadDate;
     }
 
+    public String getRawOcrText() {
+        return rawOcrText;
+    }
+
+    public void setRawOcrText(String rawOcrText) {
+        this.rawOcrText = rawOcrText;
+    }
+
+    public String getFileHash() {
+        return fileHash;
+    }
+
+    public void setFileHash(String fileHash) {
+        this.fileHash = fileHash;
+    }
+
     public Mobility getMobility() {
         return mobility;
     }
@@ -93,8 +141,11 @@ public class Document implements Serializable {
                 "id=" + id +
                 ", type=" + type +
                 ", filePath='" + filePath + '\'' +
+                ", originalFilename='" + originalFilename + '\'' +
+                ", contentType='" + contentType + '\'' +
                 ", ocrExtracted=" + ocrExtracted +
                 ", uploadDate=" + uploadDate +
+                ", fileHash=" + fileHash +
                 '}';
     }
 }
