@@ -26,13 +26,13 @@ public class DecisionService {
     }
 
     /**
-     * ✅ Create a new decision for a given mobility.
+     * ✅ Create or update a decision for a given mobility.
      */
-    public Decision createDecision(Long mobilityId, String mention, String pvPath) {
+    public Decision createOrUpdateDecision(Long mobilityId, String mention, String pvPath) {
         Mobility mobility = mobilityRepository.findById(mobilityId)
                 .orElseThrow(() -> new MobilityNotFoundException("Mobility not found with ID: " + mobilityId));
 
-        Decision decision = new Decision();
+        Decision decision = decisionRepository.findByMobilityId(mobilityId).orElse(new Decision());
         decision.setMobility(mobility);
         decision.setMention(mention);
         decision.setPvPath(pvPath);
@@ -49,7 +49,7 @@ public class DecisionService {
     }
 
     /**
-     * ❌ Delete a decision by ID (throws exception if not found).
+     * ❌ Delete a decision by ID.
      */
     public void deleteDecision(Long decisionId) {
         if (!decisionRepository.existsById(decisionId)) {

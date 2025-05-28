@@ -1,6 +1,7 @@
 package tech.swahell.mobiliteinternationale.entity;
 
 import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -8,20 +9,25 @@ import java.time.LocalDate;
 public class Document implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private DocumentType type;
+    @Column(nullable = false)
+    private DocumentType type; // e.g., TRANSCRIPT, ATTESTATION_REUSSITE
 
+    @Column(nullable = false)
     private String filePath;
+
     private boolean ocrExtracted;
+
     private LocalDate uploadDate;
 
-    @ManyToOne
-    @JoinColumn(name = "mobility_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mobility_id", nullable = false)
     private Mobility mobility;
 
+    // 🧱 Constructors
     public Document() {}
 
     public Document(DocumentType type, String filePath, boolean ocrExtracted, LocalDate uploadDate, Mobility mobility) {
@@ -32,7 +38,7 @@ public class Document implements Serializable {
         this.mobility = mobility;
     }
 
-    // Getters and setters
+    // 🔄 Getters and Setters
     public Long getId() {
         return id;
     }

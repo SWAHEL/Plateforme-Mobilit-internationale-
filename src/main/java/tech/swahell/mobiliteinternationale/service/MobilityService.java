@@ -2,6 +2,7 @@ package tech.swahell.mobiliteinternationale.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tech.swahell.mobiliteinternationale.dto.MobilityOverviewDTO;
 import tech.swahell.mobiliteinternationale.entity.*;
 import tech.swahell.mobiliteinternationale.exception.MobilityNotFoundException;
 import tech.swahell.mobiliteinternationale.exception.StudentNotFoundException;
@@ -11,6 +12,7 @@ import tech.swahell.mobiliteinternationale.repository.StudentRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MobilityService {
@@ -117,5 +119,46 @@ public class MobilityService {
 
     public List<Mobility> getMobilitiesByStatus(MobilityStatus status) {
         return mobilityRepository.findByStatus(status);
+    }
+
+    /**
+     * 📊 Get all mobility overviews (for dashboards/reports)
+     */
+    public List<MobilityOverviewDTO> getAllMobilityOverviews() {
+        return mobilityRepository.findAll().stream()
+                .map(this::mapToOverviewDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 📄 Get a detailed overview of a single mobility
+     */
+    public MobilityOverviewDTO getMobilityOverviewById(Long mobilityId) {
+        Mobility mobility = mobilityRepository.findById(mobilityId)
+                .orElseThrow(() -> new MobilityNotFoundException("Mobilité non trouvée avec l'ID : " + mobilityId));
+        return mapToOverviewDTO(mobility);
+    }
+
+    /**
+     * 🔄 Convert a Mobility entity to its overview DTO
+     */
+    private MobilityOverviewDTO mapToOverviewDTO(Mobility mobility) {
+        MobilityOverviewDTO dto = new MobilityOverviewDTO();
+        dto.setMobilityId(mobility.getId());
+        dto.setStudentFullName(mobility.getStudent().getFullName());
+        dto.setFiliere(mobility.getStudent().getFiliere().name());
+        dto.setPartnerName(mobility.getStudent().getPartner().getUniversityName());
+        dto.setType(mobility.getType());
+        dto.setProgram(mobility.getProgram());
+        dto.setStatus(mobility.getStatus().name());
+        dto.setStartDate(mobility.getStartDate());
+        dto.setEndDate(mobility.getEndDate());
+        dto.setAverageGrade(getMobilityConvertedGradeAverage(mobility.getId()));
+
+        if (mobility.getDecision() != null) {
+            dto.setMention(mobility.getDecision().getMention());
+        }
+
+        return dto;
     }
 }

@@ -8,25 +8,34 @@ import java.time.LocalDate;
 public class Decision implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private LocalDate decisionDate;
+
     private String mention;
+
+    @Enumerated(EnumType.STRING)
+    private DecisionVerdict verdict;
+
     private String pvPath;
 
     @OneToOne
+    @JoinColumn(name = "mobility_id", unique = true)
     private Mobility mobility;
 
+    // Constructors
     public Decision() {}
 
-    public Decision(LocalDate decisionDate, String mention, String pvPath, Mobility mobility) {
+    public Decision(LocalDate decisionDate, String mention, DecisionVerdict verdict, String pvPath, Mobility mobility) {
         this.decisionDate = decisionDate;
         this.mention = mention;
+        this.verdict = verdict;
         this.pvPath = pvPath;
         this.mobility = mobility;
     }
 
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -51,6 +60,14 @@ public class Decision implements Serializable {
         this.mention = mention;
     }
 
+    public DecisionVerdict getVerdict() {
+        return verdict;
+    }
+
+    public void setVerdict(DecisionVerdict verdict) {
+        this.verdict = verdict;
+    }
+
     public String getPvPath() {
         return pvPath;
     }
@@ -73,6 +90,7 @@ public class Decision implements Serializable {
                 "id=" + id +
                 ", decisionDate=" + decisionDate +
                 ", mention='" + mention + '\'' +
+                ", verdict=" + verdict +
                 ", pvPath='" + pvPath + '\'' +
                 '}';
     }

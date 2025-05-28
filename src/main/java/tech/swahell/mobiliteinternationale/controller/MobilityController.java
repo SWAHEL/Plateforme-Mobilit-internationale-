@@ -2,7 +2,9 @@ package tech.swahell.mobiliteinternationale.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tech.swahell.mobiliteinternationale.dto.MobilityOverviewDTO;
 import tech.swahell.mobiliteinternationale.dto.MobilityRequest;
 import tech.swahell.mobiliteinternationale.entity.Mobility;
 import tech.swahell.mobiliteinternationale.entity.MobilityStatus;
@@ -22,9 +24,8 @@ public class MobilityController {
         this.mobilityService = mobilityService;
     }
 
-    /**
-     * ➕ Create a new mobility record
-     */
+    // ➕ Create mobility
+    @PreAuthorize("hasAnyRole('MOBILITY_OFFICER','SCHOOL_ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<Mobility> createMobility(@RequestBody MobilityRequest request) {
         Mobility mobility = mobilityService.createMobility(
@@ -37,17 +38,15 @@ public class MobilityController {
         return ResponseEntity.ok(mobility);
     }
 
-    /**
-     * 📋 Get all mobility records
-     */
+    // 📋 Get all mobilities
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping
     public ResponseEntity<List<Mobility>> getAllMobilities() {
         return ResponseEntity.ok(mobilityService.getAllMobilities());
     }
 
-    /**
-     * 🔍 Get a mobility by ID
-     */
+    // 🔍 Get mobility by ID
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/{id}")
     public ResponseEntity<Mobility> getMobilityById(@PathVariable Long id) {
         return mobilityService.getMobilityById(id)
@@ -55,51 +54,45 @@ public class MobilityController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
-    /**
-     * 🔍 Get mobility records by student ID
-     */
+    // 🔍 Get mobility by student ID
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/student/{studentId}")
     public ResponseEntity<List<Mobility>> getByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(mobilityService.getMobilitiesByStudentId(studentId));
     }
 
-    /**
-     * 📊 Get average converted grade for a mobility (computed dynamically)
-     */
+    // 📊 Get average grade
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/{id}/average")
     public ResponseEntity<Double> getMobilityConvertedGradeAverage(@PathVariable Long id) {
         return ResponseEntity.ok(mobilityService.getMobilityConvertedGradeAverage(id));
     }
 
-
-    /**
-     * 🔄 Update status of a mobility record
-     */
+    // 🔄 Update mobility status
+    @PreAuthorize("hasAnyRole('MOBILITY_OFFICER','SCHOOL_ADMIN')")
     @PutMapping("/status/{mobilityId}")
     public ResponseEntity<Mobility> updateStatus(@PathVariable Long mobilityId,
                                                  @RequestParam MobilityStatus newStatus) {
         return ResponseEntity.ok(mobilityService.updateMobilityStatus(mobilityId, newStatus));
     }
 
+    // 🔍 Filter by status
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/status/{status}")
     public ResponseEntity<List<Mobility>> getByStatus(@PathVariable MobilityStatus status) {
         return ResponseEntity.ok(mobilityService.getMobilitiesByStatus(status));
     }
 
-
-    /**
-     * ❌ Delete a mobility record
-     */
+    // ❌ Delete mobility
+    @PreAuthorize("hasAnyRole('MOBILITY_OFFICER','SCHOOL_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMobility(@PathVariable Long id) {
         mobilityService.deleteMobility(id);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * 🔍 Search mobilities by partner name or ID
-     */
+    // 🔍 Search by partner name or ID
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/search")
     public ResponseEntity<List<Mobility>> searchByPartner(
             @RequestParam(required = false) String partnerName,
@@ -108,30 +101,39 @@ public class MobilityController {
         return ResponseEntity.ok(mobilityService.searchByPartner(partnerName, partnerId));
     }
 
-    /**
-     * 🔍 Search by type and status
-     */
+    // 🔍 Search by type and status
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/filter")
     public ResponseEntity<List<Mobility>> searchByTypeAndStatus(@RequestParam MobilityType type,
                                                                 @RequestParam MobilityStatus status) {
         return ResponseEntity.ok(mobilityService.searchByTypeAndStatus(type, status));
     }
 
-    /**
-     * 🔍 Filter mobilities by student filière
-     */
+    // 🔍 Search by filière
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/filiere")
     public ResponseEntity<List<Mobility>> searchByFiliere(@RequestParam String filiere) {
         return ResponseEntity.ok(mobilityService.searchByFiliere(filiere));
     }
 
-    /**
-     * 📊 Get all mobilities that reached decision phase
-     */
+    // 📊 Get mobilities with decision
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping("/with-decision")
     public ResponseEntity<List<Mobility>> getWithDecision() {
         return ResponseEntity.ok(mobilityService.getMobilitiesWithDecision());
     }
 
+    // 📄 Get full overview of a specific mobility
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
+    @GetMapping("/{id}/overview")
+    public ResponseEntity<MobilityOverviewDTO> getMobilityOverviewById(@PathVariable Long id) {
+        return ResponseEntity.ok(mobilityService.getMobilityOverviewById(id));
+    }
 
+    // 📊 Get all mobility overviews (dashboard/report view)
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
+    @GetMapping("/overview")
+    public ResponseEntity<List<MobilityOverviewDTO>> getAllMobilityOverviews() {
+        return ResponseEntity.ok(mobilityService.getAllMobilityOverviews());
+    }
 }

@@ -3,8 +3,8 @@ package tech.swahell.mobiliteinternationale.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tech.swahell.mobiliteinternationale.entity.Document;
-import tech.swahell.mobiliteinternationale.entity.Mobility;
 import tech.swahell.mobiliteinternationale.entity.DocumentType;
+import tech.swahell.mobiliteinternationale.entity.Mobility;
 import tech.swahell.mobiliteinternationale.exception.DocumentNotFoundException;
 import tech.swahell.mobiliteinternationale.exception.MobilityNotFoundException;
 import tech.swahell.mobiliteinternationale.repository.DocumentRepository;
@@ -26,7 +26,7 @@ public class DocumentService {
     }
 
     /**
-     * Add a new document linked to a specific mobility
+     * ➕ Add a new document linked to a specific mobility
      */
     public Document addDocument(Long mobilityId, DocumentType type, String filePath, boolean ocrExtracted) {
         Mobility mobility = mobilityRepository.findById(mobilityId)
@@ -43,21 +43,21 @@ public class DocumentService {
     }
 
     /**
-     * Get all documents
+     * 📁 Get all documents
      */
     public List<Document> getAllDocuments() {
         return documentRepository.findAll();
     }
 
     /**
-     * Get documents by type
+     * 🔍 Get documents by type
      */
     public List<Document> getDocumentsByType(DocumentType type) {
         return documentRepository.findByType(type);
     }
 
     /**
-     * Get documents by mobility ID
+     * 🔍 Get documents by mobility ID
      */
     public List<Document> getDocumentsByMobilityId(Long mobilityId) {
         if (!mobilityRepository.existsById(mobilityId)) {
@@ -67,7 +67,17 @@ public class DocumentService {
     }
 
     /**
-     * Delete a document by ID
+     * 🔍 Get specific type of document for a mobility
+     */
+    public List<Document> getDocumentsByMobilityIdAndType(Long mobilityId, DocumentType type) {
+        if (!mobilityRepository.existsById(mobilityId)) {
+            throw new MobilityNotFoundException("Mobility not found with ID: " + mobilityId);
+        }
+        return documentRepository.findByMobilityIdAndType(mobilityId, type);
+    }
+
+    /**
+     * ❌ Delete a document by ID
      */
     public void deleteDocument(Long id) {
         if (!documentRepository.existsById(id)) {
@@ -77,7 +87,7 @@ public class DocumentService {
     }
 
     /**
-     * Find a document by ID
+     * 🔍 Find a single document by ID
      */
     public Document getDocumentById(Long id) {
         return documentRepository.findById(id)

@@ -1,6 +1,7 @@
 package tech.swahell.mobiliteinternationale.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tech.swahell.mobiliteinternationale.dto.DecisionRequest;
@@ -21,11 +22,12 @@ public class DecisionController {
     }
 
     /**
-     * ➕ Create a new decision for a mobility
+     * ➕ Save (create or update) a decision for a mobility
      */
-    @PostMapping("/create")
-    public ResponseEntity<Decision> createDecision(@RequestBody DecisionRequest request) {
-        Decision decision = decisionService.createDecision(
+    @PreAuthorize("hasAnyRole('COORDINATOR','SCHOOL_ADMIN')")
+    @PostMapping("/save")
+    public ResponseEntity<Decision> saveDecision(@RequestBody DecisionRequest request) {
+        Decision decision = decisionService.createOrUpdateDecision(
                 request.getMobilityId(),
                 request.getMention(),
                 request.getPvPath()
@@ -52,7 +54,7 @@ public class DecisionController {
     }
 
     /**
-     * ❌ Delete decision
+     * ❌ Delete a decision by ID
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

@@ -2,6 +2,7 @@ package tech.swahell.mobiliteinternationale.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tech.swahell.mobiliteinternationale.dto.DocumentRequest;
 import tech.swahell.mobiliteinternationale.entity.Document;
@@ -23,21 +24,32 @@ public class DocumentController {
 
     /**
      * 📄 Upload a document related to a mobility
+     * - Only allowed for PARTNER and SCHOOL_ADMIN with restricted types
      */
+    @PreAuthorize("hasAnyRole('PARTNER', 'SCHOOL_ADMIN')")
     @PostMapping("/upload")
     public ResponseEntity<Document> uploadDocument(@RequestBody DocumentRequest request) {
-        Document document = documentService.addDocument(
-                request.getMobilityId(),
-                DocumentType.valueOf(request.getType().toUpperCase()),
-                request.getFilePath(),
-                request.isOcrExtracted()
-        );
-        return ResponseEntity.ok(document);
+        DocumentType type = DocumentType.valueOf(request.getType().toUpperCase());
+
+        // Restrict upload permissions
+        if (type == DocumentType.TRANSCRIPT || type == DocumentType.ATTESTATION_REUSSITE) {
+            return ResponseEntity.ok(
+                    documentService.addDocument(
+                            request.getMobilityId(),
+                            type,
+                            request.getFilePath(),
+                            request.isOcrExtracted()
+                    )
+            );
+        } else {
+            return ResponseEntity.badRequest().body(null); // ❌ Only those two types allowed
+        }
     }
 
     /**
      * 📋 Get all documents
      */
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','SCHOOL_ADMIN', 'MOBILITY_OFFICER')")
     @GetMapping
     public ResponseEntity<List<Document>> getAllDocuments() {
         return ResponseEntity.ok(documentService.getAllDocuments());
@@ -46,6 +58,7 @@ public class DocumentController {
     /**
      * 🔍 Get documents by mobility ID
      */
+    @PreAuthorize("hasAnyRole('STUDENT', 'PARTNER', 'SCHOOL_ADMIN', 'MOBILITY_OFFICER')")
     @GetMapping("/mobility/{mobilityId}")
     public ResponseEntity<List<Document>> getByMobility(@PathVariable Long mobilityId) {
         return ResponseEntity.ok(documentService.getDocumentsByMobilityId(mobilityId));
@@ -54,6 +67,7 @@ public class DocumentController {
     /**
      * 🔍 Get documents by type
      */
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'MOBILITY_OFFICER')")
     @GetMapping("/type")
     public ResponseEntity<List<Document>> getByType(@RequestParam String type) {
         DocumentType docType = DocumentType.valueOf(type.toUpperCase());
@@ -61,8 +75,20 @@ public class DocumentController {
     }
 
     /**
+     * 🔍 Get documents by mobility and type
+     */
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'MOBILITY_OFFICER')")
+    @GetMapping("/mobility/{mobilityId}/type")
+    public ResponseEntity<List<Document>> getByMobilityAndType(@PathVariable Long mobilityId,
+                                                               @RequestParam String type) {
+        DocumentType docType = DocumentType.valueOf(type.toUpperCase());
+        return ResponseEntity.ok(documentService.getDocumentsByMobilityIdAndType(mobilityId, docType));
+    }
+
+    /**
      * ❌ Delete document
      */
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);

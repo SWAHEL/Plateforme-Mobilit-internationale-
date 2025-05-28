@@ -10,9 +10,9 @@ import java.util.Optional;
 @Repository
 public interface DecisionRepository extends JpaRepository<Decision, Long> {
 
-    // 🔍 Obtenir la décision liée à une instance de Mobility
+    // 🔍 Get the decision associated with a Mobility object
     Optional<Decision> findByMobility(Mobility mobility);
 
-    // 🔍 Obtenir la décision liée à un ID de mobilité
+    // 🔍 Get the decision associated with a Mobility ID
     Optional<Decision> findByMobilityId(Long mobilityId);
 }

@@ -3,23 +3,26 @@ package tech.swahell.mobiliteinternationale.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tech.swahell.mobiliteinternationale.entity.Document;
-import tech.swahell.mobiliteinternationale.entity.Mobility;
 import tech.swahell.mobiliteinternationale.entity.DocumentType;
+import tech.swahell.mobiliteinternationale.entity.Mobility;
 
 import java.util.List;
 
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
-    // 🔍 Get all documents related to a specific mobility (by entity)
+    // 🔍 Get all documents for a given Mobility entity
     List<Document> findByMobility(Mobility mobility);
 
-    // 🔍 Get all documents related to a specific mobility (by ID)
+    // 🔍 Get all documents for a given Mobility ID
     List<Document> findByMobilityId(Long mobilityId);
 
-    // 🔍 Get all documents of a specific type (e.g. RELEVE, ATTESTATION, DIPLOME)
+    // 🔍 Get documents by type (e.g., TRANSCRIPT, ATTESTATION_REUSSITE)
     List<Document> findByType(DocumentType type);
 
-    // 🔍 Get all documents processed or not by OCR
+    // 🔍 Get documents filtered by OCR extraction status
     List<Document> findByOcrExtracted(boolean ocrExtracted);
+
+    // 🔍 Get documents by mobility and type
+    List<Document> findByMobilityIdAndType(Long mobilityId, DocumentType type);
 }

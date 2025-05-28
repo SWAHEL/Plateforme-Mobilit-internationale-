@@ -3,22 +3,28 @@ package tech.swahell.mobiliteinternationale.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDate;
-
 public class DocumentRequest {
 
     @NotNull(message = "Mobility ID is required")
     private Long mobilityId;
 
     @NotBlank(message = "Document type is required")
-    private String type;
+    private String type; // Should match values in DocumentType enum
 
     @NotBlank(message = "File path is required")
     private String filePath;
 
     private boolean ocrExtracted = false;
 
-    private LocalDate uploadDate = LocalDate.now(); // Default to today
+    // Constructors
+    public DocumentRequest() {}
+
+    public DocumentRequest(Long mobilityId, String type, String filePath, boolean ocrExtracted) {
+        this.mobilityId = mobilityId;
+        this.type = type;
+        this.filePath = filePath;
+        this.ocrExtracted = ocrExtracted;
+    }
 
     // Getters and Setters
     public Long getMobilityId() {
@@ -51,13 +57,5 @@ public class DocumentRequest {
 
     public void setOcrExtracted(boolean ocrExtracted) {
         this.ocrExtracted = ocrExtracted;
-    }
-
-    public LocalDate getUploadDate() {
-        return uploadDate;
-    }
-
-    public void setUploadDate(LocalDate uploadDate) {
-        this.uploadDate = uploadDate;
     }
 }
