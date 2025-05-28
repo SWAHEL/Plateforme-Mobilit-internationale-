@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import tech.swahell.mobiliteinternationale.entity.AcademicYear;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AcademicYearRepository extends JpaRepository<AcademicYear, Long> {
@@ -18,4 +19,9 @@ public interface AcademicYearRepository extends JpaRepository<AcademicYear, Long
      * 🔍 Search academic years by year label (e.g., "2023-2024")
      */
     List<AcademicYear> findByYearLabelContainingIgnoreCase(String keyword);
+
+    /**
+     * 🔍 Find one academic year by label and mobility
+     */
+    Optional<AcademicYear> findByYearLabelAndMobilityId(String yearLabel, Long mobilityId);
 }

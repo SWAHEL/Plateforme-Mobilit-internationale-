@@ -101,8 +101,6 @@ public class DocumentService {
         }
     }
 
-    // ✅ Already implemented methods (unchanged below)
-
     public List<Document> getAllDocuments() {
         return documentRepository.findAll();
     }
@@ -135,5 +133,12 @@ public class DocumentService {
     public Document getDocumentById(Long id) {
         return documentRepository.findById(id)
                 .orElseThrow(() -> new DocumentNotFoundException("Document not found with ID: " + id));
+    }
+
+    /**
+     * 💾 Save (update) an existing document
+     */
+    public Document save(Document document) {
+        return documentRepository.save(document);
     }
 }

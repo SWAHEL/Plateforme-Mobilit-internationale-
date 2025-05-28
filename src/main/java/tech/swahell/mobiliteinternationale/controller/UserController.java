@@ -28,6 +28,8 @@ public class UserController {
         return ResponseEntity.ok(userRepository.findAll());
     }
 
+
+
     /**
      * 🔍 Get a user by ID
      */

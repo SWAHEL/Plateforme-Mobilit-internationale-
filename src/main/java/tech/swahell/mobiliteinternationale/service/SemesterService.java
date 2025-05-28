@@ -29,6 +29,13 @@ public class SemesterService {
         this.moduleService = moduleService;
     }
 
+    /**
+     * ✅ Save a semester directly (added for programmatic use like transcript parsing)
+     */
+    public Semester save(Semester semester) {
+        return semesterRepository.save(semester);
+    }
+
     public Semester addSemester(Long academicYearId, SemesterRequest request) {
         AcademicYear academicYear = academicYearRepository.findById(academicYearId)
                 .orElseThrow(() -> new AcademicYearNotFoundException("Academic year not found with ID: " + academicYearId));

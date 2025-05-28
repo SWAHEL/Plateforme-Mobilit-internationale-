@@ -1,5 +1,6 @@
 package tech.swahell.mobiliteinternationale.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -37,6 +38,7 @@ public class Document implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mobility_id", nullable = false)
+    @JsonIgnore
     private Mobility mobility;
 
     // 🧱 Constructors

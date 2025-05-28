@@ -25,6 +25,11 @@ public class ModuleService {
         this.semesterRepository = semesterRepository;
     }
 
+    // ✅ Ajouté pour pouvoir sauvegarder un Module "simplement"
+    public Module save(Module module) {
+        return moduleRepository.save(module);
+    }
+
     /**
      * ➕ Add a module to a semester (with automatic grade conversion)
      */

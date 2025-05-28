@@ -30,6 +30,11 @@ public class MobilityService {
         this.academicYearService = academicYearService;
     }
 
+    // ✅ Méthode utilisée dans TranscriptParserService
+    public Mobility save(Mobility mobility) {
+        return mobilityRepository.save(mobility);
+    }
+
     public Mobility createMobility(Long studentId, MobilityType type, String program, LocalDate startDate, LocalDate endDate) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException("Étudiant non trouvé avec l'ID : " + studentId));
@@ -121,27 +126,18 @@ public class MobilityService {
         return mobilityRepository.findByStatus(status);
     }
 
-    /**
-     * 📊 Get all mobility overviews (for dashboards/reports)
-     */
     public List<MobilityOverviewDTO> getAllMobilityOverviews() {
         return mobilityRepository.findAll().stream()
                 .map(this::mapToOverviewDTO)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 📄 Get a detailed overview of a single mobility
-     */
     public MobilityOverviewDTO getMobilityOverviewById(Long mobilityId) {
         Mobility mobility = mobilityRepository.findById(mobilityId)
                 .orElseThrow(() -> new MobilityNotFoundException("Mobilité non trouvée avec l'ID : " + mobilityId));
         return mapToOverviewDTO(mobility);
     }
 
-    /**
-     * 🔄 Convert a Mobility entity to its overview DTO
-     */
     private MobilityOverviewDTO mapToOverviewDTO(Mobility mobility) {
         MobilityOverviewDTO dto = new MobilityOverviewDTO();
         dto.setMobilityId(mobility.getId());

@@ -8,7 +8,11 @@ import org.springframework.web.multipart.MultipartFile;
 import tech.swahell.mobiliteinternationale.entity.Document;
 import tech.swahell.mobiliteinternationale.entity.DocumentType;
 import tech.swahell.mobiliteinternationale.service.DocumentService;
+import tech.swahell.mobiliteinternationale.service.OCRService;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 @RestController
@@ -16,16 +20,18 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final OCRService ocrService;
 
     @Autowired
-    public DocumentController(DocumentService documentService) {
+    public DocumentController(DocumentService documentService, OCRService ocrService) {
         this.documentService = documentService;
+        this.ocrService = ocrService;
     }
 
     /**
      * 📄 Upload a PDF document related to a mobility
      */
-    @PreAuthorize("hasAnyRole('PARTNER', 'SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('PARTNER', 'SCHOOL_ADMIN' , 'SYSTEM_ADMIN')")
     @PostMapping("/upload")
     public ResponseEntity<Document> uploadDocument(
             @RequestParam("file") MultipartFile file,
@@ -40,6 +46,22 @@ public class DocumentController {
 
         Document savedDocument = documentService.uploadDocument(file, docType, mobilityId);
         return ResponseEntity.ok(savedDocument);
+    }
+
+    /**
+     * 🔍 Run OCR on a document by ID
+     */
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'SYSTEM_ADMIN')")
+    @PostMapping("/{id}/ocr")
+    public ResponseEntity<String> runOcr(@PathVariable Long id) {
+        Document document = documentService.getDocumentById(id);
+        String ocrText = ocrService.extractTextFromPdf(document.getFilePath());
+
+        document.setRawOcrText(ocrText);
+        document.setOcrExtracted(true);
+        documentService.save(document);
+
+        return ResponseEntity.ok(ocrText);
     }
 
     /**
@@ -63,7 +85,7 @@ public class DocumentController {
     /**
      * 🔍 Get documents by type
      */
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'MOBILITY_OFFICER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'MOBILITY_OFFICER' , 'SCHOOL_ADMIN')")
     @GetMapping("/type")
     public ResponseEntity<List<Document>> getByType(@RequestParam String type) {
         DocumentType docType = DocumentType.valueOf(type.toUpperCase());
@@ -73,7 +95,7 @@ public class DocumentController {
     /**
      * 🔍 Get documents by mobility and type
      */
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'MOBILITY_OFFICER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'MOBILITY_OFFICER' , 'SCHOOL_ADMIN')")
     @GetMapping("/mobility/{mobilityId}/type")
     public ResponseEntity<List<Document>> getByMobilityAndType(@PathVariable Long mobilityId,
                                                                @RequestParam String type) {
@@ -84,7 +106,7 @@ public class DocumentController {
     /**
      * ❌ Delete document
      */
-    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN' , 'SYSTEM_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);

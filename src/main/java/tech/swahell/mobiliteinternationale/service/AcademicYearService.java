@@ -29,6 +29,23 @@ public class AcademicYearService {
         this.semesterService = semesterService;
     }
 
+    // ✅ Used by TranscriptParserService
+    public AcademicYear save(AcademicYear academicYear) {
+        return academicYearRepository.save(academicYear);
+    }
+
+    /**
+     * ✅ Get or create an academic year for a given label + mobility
+     */
+    public AcademicYear getOrCreateYear(AcademicYear academicYear) {
+        return academicYearRepository
+                .findByYearLabelAndMobilityId(
+                        academicYear.getYearLabel(),
+                        academicYear.getMobility().getId()
+                )
+                .orElseGet(() -> academicYearRepository.save(academicYear));
+    }
+
     /**
      * ➕ Add a new academic year to a mobility
      */

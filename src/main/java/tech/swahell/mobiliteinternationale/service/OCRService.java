@@ -1,56 +1,57 @@
 package tech.swahell.mobiliteinternationale.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import tech.swahell.mobiliteinternationale.exception.OCRServiceException;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 @Service
 public class OCRService {
 
-    private final RestTemplate restTemplate;
-
-    @Value("${ocr.service.url}")
-    private String ocrServiceUrl;
-
-    public OCRService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
     /**
-     * Sends a base64 encoded file to the OCR microservice and retrieves extracted JSON.
+     * Extracts text from a PDF file using Tesseract OCR.
      *
-     * @param base64EncodedFile Base64 representation of the file
-     * @param filename Original filename including extension
-     * @return Extracted OCR content in raw JSON string
+     * @param pdfPath the absolute path to the uploaded PDF file
+     * @return the extracted text as a String
      */
-    public String extractTextFromDocument(String base64EncodedFile, String filename) {
-        Map<String, String> payload = new HashMap<>();
-        payload.put("fileContent", base64EncodedFile);
-        payload.put("filename", filename);
+    public String extractTextFromPdf(String pdfPath) {
+        StringBuilder extractedText = new StringBuilder();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try (PDDocument document = PDDocument.load(new File(pdfPath))) {
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+            Tesseract tesseract = new Tesseract();
 
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+            // Optional: Set Tesseract data path if not in system PATH
+            // tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata");
+            tesseract.setLanguage("eng");
 
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    ocrServiceUrl + "/api/ocr/extract", request, String.class
-            );
+            for (int page = 0; page < document.getNumberOfPages(); page++) {
+                BufferedImage image = pdfRenderer.renderImageWithDPI(page, 300);
+                File tempImage = File.createTempFile("page_" + page, ".png");
 
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
-            } else {
-                throw new OCRServiceException("OCR service responded with status: " + response.getStatusCode());
+                try {
+                    ImageIO.write(image, "png", tempImage);
+                    String pageText = tesseract.doOCR(tempImage);
+                    extractedText.append(pageText).append("\n");
+                } finally {
+                    if (tempImage.exists()) {
+                        tempImage.delete(); // Clean up temp file
+                    }
+                }
             }
 
-        } catch (Exception e) {
-            throw new OCRServiceException("Failed to call OCR service: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read or render the PDF: " + e.getMessage(), e);
+        } catch (TesseractException e) {
+            throw new RuntimeException("Tesseract OCR failed: " + e.getMessage(), e);
         }
+
+        return extractedText.toString();
     }
 }
