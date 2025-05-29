@@ -30,7 +30,6 @@ public class MobilityService {
         this.academicYearService = academicYearService;
     }
 
-    // ✅ Méthode utilisée dans TranscriptParserService
     public Mobility save(Mobility mobility) {
         return mobilityRepository.save(mobility);
     }
@@ -68,6 +67,13 @@ public class MobilityService {
             throw new IllegalStateException("Transition invalide : " + currentStatus + " → " + newStatus);
         }
 
+        mobility.setStatus(newStatus);
+        return mobilityRepository.save(mobility);
+    }
+
+    public Mobility forceUpdateStatus(Long mobilityId, MobilityStatus newStatus) {
+        Mobility mobility = mobilityRepository.findById(mobilityId)
+                .orElseThrow(() -> new MobilityNotFoundException("Mobilité non trouvée avec l'ID : " + mobilityId));
         mobility.setStatus(newStatus);
         return mobilityRepository.save(mobility);
     }

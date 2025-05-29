@@ -24,7 +24,7 @@ public class DecisionController {
     /**
      * ➕ Save (create or update) a decision for a mobility.
      */
-    @PreAuthorize("hasAnyRole('COORDINATOR','DAR','DAP','MOBILITY_OFFICER','SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('COORDINATOR','MOBILITY_OFFICER','SCHOOL_ADMIN', 'SYSTEM_ADMIN')")
     @PostMapping("/save")
     public ResponseEntity<Decision> saveDecision(@RequestBody DecisionRequest request) {
         Decision decision = decisionService.createOrUpdateDecision(request);
@@ -34,7 +34,7 @@ public class DecisionController {
     /**
      * 🔍 Get decision by mobility ID.
      */
-    @PreAuthorize("hasAnyRole('COORDINATOR','DAR','DAP','MOBILITY_OFFICER','SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('COORDINATOR','MOBILITY_OFFICER','SCHOOL_ADMIN' , 'SYSTEM_ADMIN')")
     @GetMapping("/mobility/{mobilityId}")
     public ResponseEntity<Decision> getByMobility(@PathVariable Long mobilityId) {
         return decisionService.getDecisionByMobility(mobilityId)
@@ -45,7 +45,7 @@ public class DecisionController {
     /**
      * 📋 Get all decisions.
      */
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER' , 'SYSTEM_ADMIN')")
     @GetMapping
     public ResponseEntity<List<Decision>> getAll() {
         return ResponseEntity.ok(decisionService.getAllDecisions());
@@ -54,7 +54,7 @@ public class DecisionController {
     /**
      * ❌ Delete a decision by ID.
      */
-    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN' , 'SYSTEM_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         decisionService.deleteDecision(id);

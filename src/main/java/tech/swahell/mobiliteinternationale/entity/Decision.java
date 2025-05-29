@@ -21,12 +21,14 @@ public class Decision implements Serializable {
 
     private String pvPath;
 
-    private String madeBy; // NEW
+    private String attestationPath; // ✅ Nouveau champ
+
+    private String madeBy;
 
     @Enumerated(EnumType.STRING)
-    private CommissionRole madeByRole; // NEW
+    private CommissionRole madeByRole;
 
-    private String comment; // NEW
+    private String comment;
 
     @OneToOne
     @JoinColumn(name = "mobility_id", unique = true)
@@ -35,11 +37,12 @@ public class Decision implements Serializable {
     // Constructors
     public Decision() {}
 
-    public Decision(LocalDate decisionDate, String mention, DecisionVerdict verdict, String pvPath, Mobility mobility) {
+    public Decision(LocalDate decisionDate, String mention, DecisionVerdict verdict, String pvPath, String attestationPath, Mobility mobility) {
         this.decisionDate = decisionDate;
         this.mention = mention;
         this.verdict = verdict;
         this.pvPath = pvPath;
+        this.attestationPath = attestationPath;
         this.mobility = mobility;
     }
 
@@ -84,6 +87,14 @@ public class Decision implements Serializable {
         this.pvPath = pvPath;
     }
 
+    public String getAttestationPath() {
+        return attestationPath;
+    }
+
+    public void setAttestationPath(String attestationPath) {
+        this.attestationPath = attestationPath;
+    }
+
     public String getMadeBy() {
         return madeBy;
     }
@@ -124,6 +135,7 @@ public class Decision implements Serializable {
                 ", mention='" + mention + '\'' +
                 ", verdict=" + verdict +
                 ", pvPath='" + pvPath + '\'' +
+                ", attestationPath='" + attestationPath + '\'' + // ✅ toString mis à jour
                 ", madeBy='" + madeBy + '\'' +
                 ", madeByRole=" + madeByRole +
                 ", comment='" + comment + '\'' +
