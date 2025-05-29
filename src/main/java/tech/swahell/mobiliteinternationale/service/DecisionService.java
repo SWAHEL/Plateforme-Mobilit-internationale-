@@ -2,6 +2,7 @@ package tech.swahell.mobiliteinternationale.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tech.swahell.mobiliteinternationale.dto.DecisionRequest;
 import tech.swahell.mobiliteinternationale.entity.Decision;
 import tech.swahell.mobiliteinternationale.entity.Mobility;
 import tech.swahell.mobiliteinternationale.exception.DecisionNotFoundException;
@@ -28,15 +29,20 @@ public class DecisionService {
     /**
      * ✅ Create or update a decision for a given mobility.
      */
-    public Decision createOrUpdateDecision(Long mobilityId, String mention, String pvPath) {
-        Mobility mobility = mobilityRepository.findById(mobilityId)
-                .orElseThrow(() -> new MobilityNotFoundException("Mobility not found with ID: " + mobilityId));
+    public Decision createOrUpdateDecision(DecisionRequest request) {
+        Mobility mobility = mobilityRepository.findById(request.getMobilityId())
+                .orElseThrow(() -> new MobilityNotFoundException("Mobility not found with ID: " + request.getMobilityId()));
 
-        Decision decision = decisionRepository.findByMobilityId(mobilityId).orElse(new Decision());
+        Decision decision = decisionRepository.findByMobilityId(request.getMobilityId()).orElse(new Decision());
         decision.setMobility(mobility);
-        decision.setMention(mention);
-        decision.setPvPath(pvPath);
+        decision.setMention(request.getMention());
+        decision.setPvPath(request.getPvPath());
         decision.setDecisionDate(LocalDate.now());
+
+        decision.setVerdict(request.getVerdict());
+        decision.setMadeBy(request.getMadeBy()); // was previously getMadeByName()
+        decision.setMadeByRole(request.getMadeByRole());
+        decision.setComment(request.getComment());
 
         return decisionRepository.save(decision);
     }

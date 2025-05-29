@@ -1,8 +1,8 @@
 package tech.swahell.mobiliteinternationale.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tech.swahell.mobiliteinternationale.dto.DecisionRequest;
 import tech.swahell.mobiliteinternationale.entity.Decision;
@@ -22,22 +22,19 @@ public class DecisionController {
     }
 
     /**
-     * ➕ Save (create or update) a decision for a mobility
+     * ➕ Save (create or update) a decision for a mobility.
      */
-    @PreAuthorize("hasAnyRole('COORDINATOR','SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('COORDINATOR','DAR','DAP','MOBILITY_OFFICER','SCHOOL_ADMIN')")
     @PostMapping("/save")
     public ResponseEntity<Decision> saveDecision(@RequestBody DecisionRequest request) {
-        Decision decision = decisionService.createOrUpdateDecision(
-                request.getMobilityId(),
-                request.getMention(),
-                request.getPvPath()
-        );
+        Decision decision = decisionService.createOrUpdateDecision(request);
         return ResponseEntity.ok(decision);
     }
 
     /**
-     * 🔍 Get decision by mobility ID
+     * 🔍 Get decision by mobility ID.
      */
+    @PreAuthorize("hasAnyRole('COORDINATOR','DAR','DAP','MOBILITY_OFFICER','SCHOOL_ADMIN')")
     @GetMapping("/mobility/{mobilityId}")
     public ResponseEntity<Decision> getByMobility(@PathVariable Long mobilityId) {
         return decisionService.getDecisionByMobility(mobilityId)
@@ -46,16 +43,18 @@ public class DecisionController {
     }
 
     /**
-     * 📋 Get all decisions
+     * 📋 Get all decisions.
      */
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER')")
     @GetMapping
     public ResponseEntity<List<Decision>> getAll() {
         return ResponseEntity.ok(decisionService.getAllDecisions());
     }
 
     /**
-     * ❌ Delete a decision by ID
+     * ❌ Delete a decision by ID.
      */
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         decisionService.deleteDecision(id);

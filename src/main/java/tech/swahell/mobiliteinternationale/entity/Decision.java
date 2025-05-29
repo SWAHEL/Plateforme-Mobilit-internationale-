@@ -1,6 +1,7 @@
 package tech.swahell.mobiliteinternationale.entity;
 
 import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -19,6 +20,13 @@ public class Decision implements Serializable {
     private DecisionVerdict verdict;
 
     private String pvPath;
+
+    private String madeBy; // NEW
+
+    @Enumerated(EnumType.STRING)
+    private CommissionRole madeByRole; // NEW
+
+    private String comment; // NEW
 
     @OneToOne
     @JoinColumn(name = "mobility_id", unique = true)
@@ -76,6 +84,30 @@ public class Decision implements Serializable {
         this.pvPath = pvPath;
     }
 
+    public String getMadeBy() {
+        return madeBy;
+    }
+
+    public void setMadeBy(String madeBy) {
+        this.madeBy = madeBy;
+    }
+
+    public CommissionRole getMadeByRole() {
+        return madeByRole;
+    }
+
+    public void setMadeByRole(CommissionRole madeByRole) {
+        this.madeByRole = madeByRole;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
     public Mobility getMobility() {
         return mobility;
     }
@@ -92,6 +124,9 @@ public class Decision implements Serializable {
                 ", mention='" + mention + '\'' +
                 ", verdict=" + verdict +
                 ", pvPath='" + pvPath + '\'' +
+                ", madeBy='" + madeBy + '\'' +
+                ", madeByRole=" + madeByRole +
+                ", comment='" + comment + '\'' +
                 '}';
     }
 }
