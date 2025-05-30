@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tech.swahell.mobiliteinternationale.dto.AdminDashboardDTO;
 import tech.swahell.mobiliteinternationale.dto.MobilityOverviewDTO;
 import tech.swahell.mobiliteinternationale.dto.MobilityRequest;
 import tech.swahell.mobiliteinternationale.entity.Mobility;
@@ -22,6 +23,13 @@ public class MobilityController {
     @Autowired
     public MobilityController(MobilityService mobilityService) {
         this.mobilityService = mobilityService;
+    }
+
+    // ✅ 📊 Admin dashboard endpoint
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN','MOBILITY_OFFICER', 'SYSTEM_ADMIN')")
+    @GetMapping("/admin-dashboard")
+    public ResponseEntity<AdminDashboardDTO> getAdminDashboard() {
+        return ResponseEntity.ok(mobilityService.getAdminDashboard());
     }
 
     // ➕ Create mobility

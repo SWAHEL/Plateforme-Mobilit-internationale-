@@ -3,9 +3,12 @@ package tech.swahell.mobiliteinternationale.controller;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tech.swahell.mobiliteinternationale.dto.PartnerDashboardDTO;
 import tech.swahell.mobiliteinternationale.dto.PartnerRequest;
 import tech.swahell.mobiliteinternationale.entity.Partner;
+import tech.swahell.mobiliteinternationale.service.MobilityService;
 import tech.swahell.mobiliteinternationale.service.PartnerService;
 
 import java.util.List;
@@ -15,10 +18,12 @@ import java.util.List;
 public class PartnerController {
 
     private final PartnerService partnerService;
+    private final MobilityService mobilityService;
 
     @Autowired
-    public PartnerController(PartnerService partnerService) {
+    public PartnerController(PartnerService partnerService, MobilityService mobilityService) {
         this.partnerService = partnerService;
+        this.mobilityService = mobilityService;
     }
 
     /**
@@ -84,5 +89,15 @@ public class PartnerController {
                                               @RequestParam String currentUserRole) {
         partnerService.deletePartner(id, currentUserRole);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 📊 Dashboard for a partner (statistics)
+     */
+    @GetMapping("/dashboard/{partnerId}")
+    @PreAuthorize("hasAnyRole('PARTNER' , 'SYSTEM_ADMIN')")
+    public ResponseEntity<PartnerDashboardDTO> getPartnerDashboard(@PathVariable Long partnerId) {
+        PartnerDashboardDTO dashboard = mobilityService.getDashboardForPartner(partnerId);
+        return ResponseEntity.ok(dashboard);
     }
 }

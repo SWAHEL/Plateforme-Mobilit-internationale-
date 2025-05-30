@@ -2,16 +2,18 @@ package tech.swahell.mobiliteinternationale.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tech.swahell.mobiliteinternationale.dto.AdminDashboardDTO;
 import tech.swahell.mobiliteinternationale.dto.MobilityOverviewDTO;
+import tech.swahell.mobiliteinternationale.dto.PartnerDashboardDTO;
 import tech.swahell.mobiliteinternationale.entity.*;
+import tech.swahell.mobiliteinternationale.entity.Module;
 import tech.swahell.mobiliteinternationale.exception.MobilityNotFoundException;
 import tech.swahell.mobiliteinternationale.exception.StudentNotFoundException;
 import tech.swahell.mobiliteinternationale.repository.MobilityRepository;
 import tech.swahell.mobiliteinternationale.repository.StudentRepository;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -160,6 +162,87 @@ public class MobilityService {
         if (mobility.getDecision() != null) {
             dto.setMention(mobility.getDecision().getMention());
         }
+
+        return dto;
+    }
+
+    // ✅ Dashboard pour PARTNER
+    public PartnerDashboardDTO getDashboardForPartner(Long partnerId) {
+        List<Mobility> mobilities = mobilityRepository.findByStudent_Partner_Id(partnerId);
+
+        PartnerDashboardDTO dto = new PartnerDashboardDTO();
+        dto.setTotalStudents(mobilities.size());
+        dto.setExchangeCount(mobilities.stream().filter(m -> m.getType() == MobilityType.EXCHANGE).count());
+        dto.setDoubleDiplomaCount(mobilities.stream().filter(m -> m.getType() == MobilityType.DOUBLE_DIPLOMA).count());
+        dto.setCountByAcademicYear(
+                mobilities.stream()
+                        .flatMap(m -> m.getAcademicYears().stream())
+                        .collect(Collectors.groupingBy(
+                                AcademicYear::getYearLabel,
+                                Collectors.counting()
+                        ))
+        );
+        return dto;
+    }
+
+    // ✅ Dashboard pour ADMIN / MOBILITY_OFFICER
+    public AdminDashboardDTO getAdminDashboard() {
+        List<Mobility> mobilities = mobilityRepository.findAll();
+
+        AdminDashboardDTO dto = new AdminDashboardDTO();
+        dto.setTotalMobilities(mobilities.size());
+
+        dto.setTotalStudents(
+                mobilities.stream()
+                        .map(m -> m.getStudent().getId())
+                        .distinct()
+                        .count()
+        );
+
+        dto.setMobilitiesByPartner(
+                mobilities.stream()
+                        .collect(Collectors.groupingBy(
+                                m -> m.getStudent().getPartner().getUniversityName(),
+                                Collectors.counting()
+                        ))
+        );
+
+        dto.setMobilitiesByFiliere(
+                mobilities.stream()
+                        .collect(Collectors.groupingBy(
+                                m -> m.getStudent().getFiliere().name(),
+                                Collectors.counting()
+                        ))
+        );
+
+        dto.setOverallAverageGrade(
+                mobilities.stream()
+                        .flatMap(m -> m.getAcademicYears().stream())
+                        .flatMap(y -> y.getSemesters().stream())
+                        .flatMap(s -> s.getModules().stream())
+                        .mapToDouble(Module::getConvertedGrade)
+                        .average()
+                        .orElse(0.0)
+        );
+
+        dto.setDecisionStats(
+                mobilities.stream()
+                        .map(Mobility::getDecision)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.groupingBy(
+                                d -> d.getVerdict().name(),  // ✅ convert enum to String
+                                Collectors.counting()
+                        ))
+        );
+
+        dto.setMobilitiesByYear(
+                mobilities.stream()
+                        .flatMap(m -> m.getAcademicYears().stream())
+                        .collect(Collectors.groupingBy(
+                                AcademicYear::getYearLabel,
+                                Collectors.counting()
+                        ))
+        );
 
         return dto;
     }
